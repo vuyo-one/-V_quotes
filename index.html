@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Othello: The Master Arsenal | Grade 12 NSC</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --accent-gold: #d4af37;
+            --accent-green: #10b981; /* Jealousy */
+            --accent-red: #ef4444;   /* Blood/Tragedy */
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Inter', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            background-image: radial-gradient(circle at 10% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 20%),
+                              radial-gradient(circle at 90% 80%, rgba(212, 175, 55, 0.05) 0%, transparent 20%);
+        }
+
+        /* --- HERO SECTION --- */
+        header {
+            text-align: center;
+            padding: 80px 20px 40px;
+            background: linear-gradient(to bottom, #020617, var(--bg-dark));
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        h1 {
+            font-family: var(--font-serif);
+            font-size: 3.5rem;
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+            text-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* --- CONTROLS --- */
+        .controls {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+        }
+
+        .search-box {
+            background: var(--bg-card);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            border-radius: 50px;
+            color: white;
+            font-family: var(--font-sans);
+            width: 300px;
+            transition: 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--accent-gold);
+            color: var(--bg-dark);
+            border-color: var(--accent-gold);
+            font-weight: 600;
+        }
+
+        /* --- GRID LAYOUT --- */
+        .container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        /* --- QUOTE CARD DESIGN --- */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -5px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        /* Character Color Coding */
+        .card[data-char="Iago"]::before { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+        .card[data-char="Othello"]::before { background: #8b5cf6; box-shadow: 0 0 10px #8b5cf6; } /* Royal Purple */
+        .card[data-char="Desdemona"]::before { background: #f8fafc; box-shadow: 0 0 10px #f8fafc; } /* White */
+        .card[data-char="Emilia"]::before { background: #f43f5e; }
+        .card[data-char="Cassio"]::before { background: #3b82f6; }
+        .card[data-char="Brabantio"]::before { background: #64748b; }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .speaker-tag {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .act-tag {
+            background: rgba(255,255,255,0.05);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .quote-text {
+            font-family: var(--font-serif);
+            font-size: 1.4rem;
+            color: #fff;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            font-style: italic;
+            position: relative;
+        }
+
+        .quote-text::before {
+            content: '"';
+            font-size: 4rem;
+            position: absolute;
+            top: -20px;
+            left: -15px;
+            opacity: 0.1;
+            font-family: serif;
+        }
+
+        .analysis {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .analysis-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--accent-gold);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .analysis-text {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Copy Button */
+        .copy-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.2);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .copy-btn:hover { color: var(--accent-gold); }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .pro-tip-box {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(15, 23, 42, 0));
+            max-width: 600px;
+            margin: 0 auto 30px;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent-green);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .container { grid-template-columns: 1fr; }
+            .controls { top: -1px; padding: 15px 10px; }
+            .search-box { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>OTHELLO</h1>
+    <p class="subtitle">The Complete Quote Arsenal for NSC Grade 12</p>
+</header>
+
+<div class="controls">
+    <input type="text" class="search-box" id="searchInput" placeholder="Search quotes, themes, or keywords...">
+    <button class="filter-btn active" data-filter="all">All Quotes</button>
+    <button class="filter-btn" data-filter="Iago">Iago</button>
+    <button class="filter-btn" data-filter="Othello">Othello</button>
+    <button class="filter-btn" data-filter="Desdemona">Desdemona</button>
+    <button class="filter-btn" data-filter="Jealousy">Theme: Jealousy</button>
+    <button class="filter-btn" data-filter="Race">Theme: Race</button>
+</div>
+
+<div class="container" id="quoteContainer">
+
+    <!-- QUOTE 1 -->
+    <div class="card" data-char="Iago" data-themes="appearance deception villainy">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: var(--accent-green)">Iago</span>
+            <span class="act-tag">Act 1, Sc 1</span>
+        </div>
+        <div class="quote-text">"I am not what I am."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">The definitive paradox of the play. A biblical inversion of God's "I am that I am," establishing Iago as a satanic figure of pure deception. He warns us immediately: do not trust appearances.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Appearance vs Reality</span>
+            <span class="tag">Biblical Allusion</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 2 -->
+    <div class="card" data-char="Iago" data-themes="jealousy manipulation">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: var(--accent-green)">Iago</span>
+            <span class="act-tag">Act 3, Sc 3</span>
+        </div>
+        <div class="quote-text">"O, beware, my lord, of jealousy; It is the green-eyed monster which doth mock the meat it feeds on."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Iago uses reverse psychology, naming the emotion to plant it in Othello's mind. The metaphor suggests jealousy is a parasite that eats the host (Othello) from the inside out.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Jealousy</span>
+            <span class="tag">Metaphor</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 3 -->
+    <div class="card" data-char="Othello" data-themes="race insecurity">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #8b5cf6">Othello</span>
+            <span class="act-tag">Act 3, Sc 3</span>
+        </div>
+        <div class="quote-text">"Haply, for I am black and have not those soft parts of conversation that chamberers have."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">The turning point. Othello begins to internalize the racism he previously ignored. He views his race and lack of Venetian polish as flaws that would cause Desdemona to leave him.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Internalized Racism</span>
+            <span class="tag">Insecurity</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 4 -->
+    <div class="card" data-char="Othello" data-themes="justice symbolism light">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #8b5cf6">Othello</span>
+            <span class="act-tag">Act 5, Sc 2</span>
+        </div>
+        <div class="quote-text">"Put out the light, and then put out the light."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Spoken before killing Desdemona. He equates blowing out a candle (literal light) with ending her life (spiritual light). It shows he sees this as a ritual sacrifice, not a murder.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Symbolism</span>
+            <span class="tag">Tragic Irony</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 5 -->
+    <div class="card" data-char="Iago" data-themes="villainy silence">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: var(--accent-green)">Iago</span>
+            <span class="act-tag">Act 5, Sc 2</span>
+        </div>
+        <div class="quote-text">"Demand me nothing. What you know, you know. From this time forth I never will speak word."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Iago's final act of control. By refusing to explain his motives, he denies everyone closure. This reinforces Coleridge's idea of "motiveless malignity."</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Power</span>
+            <span class="tag">Ambiguity</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 6 -->
+    <div class="card" data-char="Iago" data-themes="race animalism">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: var(--accent-green)">Iago</span>
+            <span class="act-tag">Act 1, Sc 1</span>
+        </div>
+        <div class="quote-text">"Even now, now, very now, an old black ram is tupping your white ewe."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Uses crude animal imagery to dehumanize Othello and panic Brabantio. The contrast of black/white and ram/ewe reduces their love to bestial lust.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Racism</span>
+            <span class="tag">Imagery</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 7 -->
+    <div class="card" data-char="Cassio" data-themes="reputation honor">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #3b82f6">Cassio</span>
+            <span class="act-tag">Act 2, Sc 3</span>
+        </div>
+        <div class="quote-text">"Reputation, reputation, reputation! O, I have lost my reputation! I have lost the immortal part of myself, and what remains is bestial."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Demonstrates the Venetian obsession with honor. Without social standing, Cassio feels he is no better than a beast—a fear Othello also shares.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Reputation</span>
+            <span class="tag">Identity</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 8 -->
+    <div class="card" data-char="Iago" data-themes="manipulation web">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: var(--accent-green)">Iago</span>
+            <span class="act-tag">Act 2, Sc 1</span>
+        </div>
+        <div class="quote-text">"With as little a web as this will I ensnare as great a fly as Cassio."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Spider imagery. Iago watches Cassio kiss Desdemona's hand and plans to twist this innocent courtesy into a fatal trap. Shows his opportunistic nature.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Predator Imagery</span>
+            <span class="tag">Plotting</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 9 -->
+    <div class="card" data-char="Iago" data-themes="jealousy proof">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: var(--accent-green)">Iago</span>
+            <span class="act-tag">Act 3, Sc 3</span>
+        </div>
+        <div class="quote-text">"Trifles light as air are to the jealous confirmations strong as proofs of holy writ."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Explains the psychology of the handkerchief plot. To a jealous mind, meaningless things (trifles) become absolute gospel truth (holy writ).</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Psychology</span>
+            <span class="tag">The Handkerchief</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 11 -->
+    <div class="card" data-char="Emilia" data-themes="gender feminism">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #f43f5e">Emilia</span>
+            <span class="act-tag">Act 3, Sc 4</span>
+        </div>
+        <div class="quote-text">"They are all but stomachs, and we all but food; they eat us hungerly, and when they are full, they belch us."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">A cynical view of men. Emilia explains that men use women for pleasure/utility and discard them. Contrasts with Desdemona's idealistic view of Othello.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Gender Roles</span>
+            <span class="tag">Metaphor</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 12 -->
+    <div class="card" data-char="Othello" data-themes="love chaos">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #8b5cf6">Othello</span>
+            <span class="act-tag">Act 3, Sc 3</span>
+        </div>
+        <div class="quote-text">"Excellent wretch! Perdition catch my soul, but I do love thee! And when I love thee not, chaos is come again."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Tragic foreshadowing. Othello admits that without Desdemona, his world will lose all order (chaos). This literally happens: as his love dies, his rationality collapses.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Foreshadowing</span>
+            <span class="tag">Love</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 13 -->
+    <div class="card" data-char="Iago" data-themes="willpower philosophy">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: var(--accent-green)">Iago</span>
+            <span class="act-tag">Act 1, Sc 3</span>
+        </div>
+        <div class="quote-text">"Virtue! a fig! 'tis in ourselves that we are thus or thus. Our bodies are our gardens, to the which our wills are gardeners."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Iago's manifesto. He rejects fate and emotion, believing in absolute self-control and will. He "gardens" his own personality to manipulate others.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Free Will</span>
+            <span class="tag">Rationalism</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 14 -->
+    <div class="card" data-char="Desdemona" data-themes="innocence love">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #e2e8f0">Desdemona</span>
+            <span class="act-tag">Act 4, Sc 2</span>
+        </div>
+        <div class="quote-text">"His unkindness may defeat my life, but never taint my love."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Highlighting her tragic loyalty. Even as Othello abuses her, she remains steadfast. This can be seen as ultimate virtue or tragic passivity.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Victimhood</span>
+            <span class="tag">Loyalty</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 15 -->
+    <div class="card" data-char="Othello" data-themes="identity suicide race">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #8b5cf6">Othello</span>
+            <span class="act-tag">Act 5, Sc 2</span>
+        </div>
+        <div class="quote-text">"I took by the throat the circumcised dog, and smote him thus."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">His final act. He identifies himself with the "Turk" (the enemy of Venice) and kills himself to punish the enemy within. A complex moment of reclaiming honor through suicide.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Redemption</span>
+            <span class="tag">Outsider</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 17 -->
+    <div class="card" data-char="Iago" data-themes="deception identity">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: var(--accent-green)">Iago</span>
+            <span class="act-tag">Act 1, Sc 1</span>
+        </div>
+        <div class="quote-text">"Were I the Moor I would not be Iago. In following him I follow but myself."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">A clear admission of self-interest. He follows Othello only to serve his own ends. It establishes the theme that Iago's loyalty is a performance.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Machiavellian</span>
+            <span class="tag">Deceit</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 19 -->
+    <div class="card" data-char="Othello" data-themes="symbolism jealousy">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #8b5cf6">Othello</span>
+            <span class="act-tag">Act 5, Sc 2</span>
+        </div>
+        <div class="quote-text">"That handkerchief which I so loved and gave thee thou gav'st to Cassio."</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">The climax of the symbol. The handkerchief, once a symbol of love, has become a symbol of infidelity. Othello is so blinded by "evidence" he ignores her denial.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">The Handkerchief</span>
+            <span class="tag">Blindness</span>
+        </div>
+    </div>
+
+    <!-- QUOTE 20 -->
+    <div class="card" data-char="Emilia" data-themes="truth courage">
+        <button class="copy-btn" onclick="copyQuote(this)" title="Copy Quote">📋</button>
+        <div class="card-header">
+            <span class="speaker-tag" style="color: #f43f5e">Emilia</span>
+            <span class="act-tag">Act 5, Sc 2</span>
+        </div>
+        <div class="quote-text">"You told a lie, an odious, damned lie! Upon my soul, a lie, a wicked lie!"</div>
+        <div class="analysis">
+            <div class="analysis-title">Significance</div>
+            <p class="analysis-text">Emilia's moral awakening. She defies her husband and societal expectations of silence to speak the truth, ultimately sacrificing her life for it.</p>
+        </div>
+        <div class="tags">
+            <span class="tag">Truth</span>
+            <span class="tag">Defiance</span>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <div class="pro-tip-box">
+     
+    created and compiled by ~V
+    </div>
+    <p>Good luck...</p>
+</footer>
+
+<script>
+    // Filter Functionality
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const cards = document.querySelectorAll('.card');
+    const searchInput = document.getElementById('searchInput');
+
+    // Button Filtering
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Remove active class from all
+            filterBtns.forEach(b => b.classList.remove('active'));
+            // Add to clicked
+            btn.classList.add('active');
+            
+            const filterValue = btn.getAttribute('data-filter');
+            
+            cards.forEach(card => {
+                if(filterValue === 'all') {
+                    card.style.display = 'flex';
+                } else {
+                    // Check Character
+                    const charMatch = card.getAttribute('data-char') === filterValue;
+                    // Check Theme (simple includes check)
+                    const themeMatch = card.getAttribute('data-themes').includes(filterValue.toLowerCase());
+                    
+                    if(charMatch || themeMatch) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                }
+            });
+        });
+    });
+
+    // Search Functionality
+    searchInput.addEventListener('keyup', (e) => {
+        const term = e.target.value.toLowerCase();
+        
+        cards.forEach(card => {
+            const text = card.innerText.toLowerCase();
+            if(text.includes(term)) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+
+    // Copy to Clipboard
+    function copyQuote(btn) {
+        const card = btn.closest('.card');
+        const text = card.querySelector('.quote-text').innerText;
+        const speaker = card.querySelector('.speaker-tag').innerText;
+        const act = card.querySelector('.act-tag').innerText;
+        
+        const fullString = `"${text}" - ${speaker} (${act})`;
+        
+        navigator.clipboard.writeText(fullString).then(() => {
+            const originalText = btn.innerText;
+            btn.innerText = '✅';
+            setTimeout(() => {
+                btn.innerText = originalText;
+            }, 2000);
+        });
+    }
+</script>
+
+</body>
+</html>
